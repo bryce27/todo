@@ -13896,6 +13896,7 @@ module.exports = __webpack_require__(43);
 __webpack_require__(13);
 
 window.Vue = __webpack_require__(36);
+window.bus = new Vue();
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -13903,7 +13904,8 @@ window.Vue = __webpack_require__(36);
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
-Vue.component('todo-component', __webpack_require__(39));
+Vue.component('todo-component', __webpack_require__(48));
+Vue.component('todo-item', __webpack_require__(51));
 
 var app = new Vue({
   el: '#app'
@@ -47179,53 +47181,7 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(6)))
 
 /***/ }),
-/* 39 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-var normalizeComponent = __webpack_require__(40)
-/* script */
-var __vue_script__ = __webpack_require__(41)
-/* template */
-var __vue_template__ = __webpack_require__(42)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = null
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/todo.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-5289e811", Component.options)
-  } else {
-    hotAPI.reload("data-v-5289e811", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
+/* 39 */,
 /* 40 */
 /***/ (function(module, exports) {
 
@@ -47335,11 +47291,72 @@ module.exports = function normalizeComponent (
 
 
 /***/ }),
-/* 41 */
+/* 41 */,
+/* 42 */,
+/* 43 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 44 */,
+/* 45 */,
+/* 46 */,
+/* 47 */,
+/* 48 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+var normalizeComponent = __webpack_require__(40)
+/* script */
+var __vue_script__ = __webpack_require__(49)
+/* template */
+var __vue_template__ = __webpack_require__(50)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = null
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/todo-list.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-462894ec", Component.options)
+  } else {
+    hotAPI.reload("data-v-462894ec", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 49 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__todo_item__ = __webpack_require__(51);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__todo_item___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__todo_item__);
 //
 //
 //
@@ -47358,47 +47375,31 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
-//
-//
-//
-//
+
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     data: function data() {
         return {
             todos: [],
-            newTodo: '',
-            baseId: 1
+            newTodo: ''
         };
     },
     created: function created() {
         this.getTodos();
+        this.initListeners();
     },
 
     methods: {
-        add: function add() {
+        initListeners: function initListeners() {
             var t = this;
 
-            if (t.newTodo.length > 0) {
-                var todo = {
-                    id: t.baseId,
-                    text: t.newTodo,
-                    finished: false
-                };
+            bus.$on('update-todo', function (details) {
+                t.update(details);
+            });
 
-                t.todos.unshift(todo);
-
-                t.newTodo = '';
-                t.baseId++;
-            }
-        },
-        updateStatus: function updateStatus(todo) {
-            todo.finished = !todo.finished;
-        },
-        remove: function remove(index) {
-            var t = this;
-
-            t.todos.splice(index, 1);
+            bus.$on('remove-todo', function (details) {
+                t.remove(details);
+            });
         },
         getTodos: function getTodos() {
             var t = this;
@@ -47417,12 +47418,39 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
                 t.todos.unshift(data);
             });
+        },
+        updateTodo: function updateTodo(details) {
+            var t = this;
+
+            axios.patch('/todos/' + details.id, details.data).then(function (_ref3) {
+                var data = _ref3.data;
+
+                t.todos.splice(details.index, 1, data);
+            });
+        },
+        removeTodo: function removeTodo(details) {
+            var t = this;
+
+            axios.delete('/todos/' + details.id).then(function () {
+                t.todos.splice(details.index, 1);
+            });
+        },
+        addTodo: function addTodo() {
+            var t = this;
+
+            if (t.newTodo.length > 0) {
+                t.createTodo(t.newTodo);
+                t.newTodo = '';
+            }
         }
+    },
+    components: {
+        todoItem: __WEBPACK_IMPORTED_MODULE_0__todo_item___default.a
     }
 });
 
 /***/ }),
-/* 42 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -47435,7 +47463,7 @@ var render = function() {
       staticClass: "bg-white rounded shadow p-6 m-4 w-full lg:w-3/4 lg:max-w-lg"
     },
     [
-      _c("div", { staticClass: "mb-4" }, [
+      _c("div", { staticClass: "mb-6" }, [
         _c("h1", { staticClass: "text-grey-darkest" }, [_vm._v("Todo List")]),
         _vm._v(" "),
         _c("div", { staticClass: "flex mt-4" }, [
@@ -47460,7 +47488,7 @@ var render = function() {
                 ) {
                   return null
                 }
-                return _vm.add($event)
+                return _vm.addTodo($event)
               },
               input: function($event) {
                 if ($event.target.composing) {
@@ -47477,7 +47505,7 @@ var render = function() {
               staticClass:
                 "flex-no-shrink p-2 border-2 rounded text-teal border-teal hover:text-white hover:bg-teal",
               attrs: { disabled: _vm.newTodo.length === 0 },
-              on: { click: _vm.add }
+              on: { click: _vm.addTodo }
             },
             [_vm._v("Add")]
           )
@@ -47489,46 +47517,10 @@ var render = function() {
         { staticClass: "max-h-screen-1/2 overflow-y-scroll" },
         [
           _vm._l(_vm.todos, function(todo, index) {
-            return _c(
-              "div",
-              { key: todo.id, staticClass: "flex mb-4 items-center" },
-              [
-                _c("input", {
-                  staticClass: "mr-2",
-                  attrs: { type: "checkbox" },
-                  on: {
-                    click: function($event) {
-                      _vm.updateStatus(todo)
-                    }
-                  }
-                }),
-                _vm._v(" "),
-                _c(
-                  "p",
-                  {
-                    staticClass: "w-full",
-                    class: todo.finished
-                      ? "line-through text-green"
-                      : "text-grey-darkest"
-                  },
-                  [_vm._v(_vm._s(todo.text))]
-                ),
-                _vm._v(" "),
-                _c(
-                  "button",
-                  {
-                    staticClass:
-                      "flex-no-shrink p-2 ml-2 border-2 rounded text-red border-red hover:text-white hover:bg-red",
-                    on: {
-                      click: function($event) {
-                        _vm.remove(index)
-                      }
-                    }
-                  },
-                  [_vm._v("Remove")]
-                )
-              ]
-            )
+            return _c("todo-item", {
+              key: todo.id,
+              attrs: { todo: todo, index: index }
+            })
           }),
           _vm._v(" "),
           _c(
@@ -47561,15 +47553,302 @@ module.exports = { render: render, staticRenderFns: staticRenderFns }
 if (false) {
   module.hot.accept()
   if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-5289e811", module.exports)
+    require("vue-hot-reload-api")      .rerender("data-v-462894ec", module.exports)
   }
 }
 
 /***/ }),
-/* 43 */
-/***/ (function(module, exports) {
+/* 51 */
+/***/ (function(module, exports, __webpack_require__) {
 
-// removed by extract-text-webpack-plugin
+var disposed = false
+var normalizeComponent = __webpack_require__(40)
+/* script */
+var __vue_script__ = __webpack_require__(52)
+/* template */
+var __vue_template__ = __webpack_require__(53)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = null
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/todo-item.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-5a338502", Component.options)
+  } else {
+    hotAPI.reload("data-v-5a338502", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 52 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  props: ['todo', 'index'],
+  data: function data() {
+    return {
+      state: {
+        edit: false
+      },
+      data: {
+        text: '',
+        finished: false
+      }
+    };
+  },
+  mounted: function mounted() {
+    var t = this;
+
+    t.data.text = t.todo.text;
+    t.data.finished = t.todo.finished;
+  },
+
+  methods: {
+    updateTodo: function updateTodo() {
+      var t = this;
+
+      t.$nextTick(function () {
+        bus.$emit('update-todo', { data: t.data, index: t.index, id: t.todo.id });
+      });
+
+      t.state.edit = false;
+    },
+    remove: function remove() {
+      var t = this;
+
+      bus.$emit('remove-todo', { index: t.index, id: t.todo.id });
+    },
+    startEdit: function startEdit() {
+      var t = this;
+
+      if (t.data.finished === false) {
+        t.state.edit = true;
+      }
+    },
+    cancelEdit: function cancelEdit() {
+      var t = this;
+
+      t.state.edit = false;
+      t.data.text = t.todo.text;
+    }
+  }
+});
+
+/***/ }),
+/* 53 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c("div", { staticClass: "mb-4" }, [
+    _c(
+      "div",
+      {
+        directives: [
+          {
+            name: "show",
+            rawName: "v-show",
+            value: _vm.state.edit === false,
+            expression: "state.edit === false"
+          }
+        ],
+        staticClass: "flex items-center w-full"
+      },
+      [
+        _c("input", {
+          directives: [
+            {
+              name: "model",
+              rawName: "v-model",
+              value: _vm.data.finished,
+              expression: "data.finished"
+            }
+          ],
+          staticClass: "mr-2",
+          attrs: { type: "checkbox" },
+          domProps: {
+            checked: Array.isArray(_vm.data.finished)
+              ? _vm._i(_vm.data.finished, null) > -1
+              : _vm.data.finished
+          },
+          on: {
+            click: _vm.updateTodo,
+            change: function($event) {
+              var $$a = _vm.data.finished,
+                $$el = $event.target,
+                $$c = $$el.checked ? true : false
+              if (Array.isArray($$a)) {
+                var $$v = null,
+                  $$i = _vm._i($$a, $$v)
+                if ($$el.checked) {
+                  $$i < 0 && _vm.$set(_vm.data, "finished", $$a.concat([$$v]))
+                } else {
+                  $$i > -1 &&
+                    _vm.$set(
+                      _vm.data,
+                      "finished",
+                      $$a.slice(0, $$i).concat($$a.slice($$i + 1))
+                    )
+                }
+              } else {
+                _vm.$set(_vm.data, "finished", $$c)
+              }
+            }
+          }
+        }),
+        _vm._v(" "),
+        _c(
+          "p",
+          {
+            staticClass: "w-auto",
+            class: _vm.data.finished
+              ? "line-through text-green"
+              : "text-grey-darkest cursor-pointer hover:text-black hover:font-bold",
+            on: { click: _vm.startEdit }
+          },
+          [_vm._v(_vm._s(_vm.todo.text))]
+        ),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            staticClass:
+              "flex-no-shrink p-2 ml-auto border-2 rounded text-red border-red hover:text-white hover:bg-red",
+            on: {
+              click: function($event) {
+                _vm.remove(_vm.index)
+              }
+            }
+          },
+          [_vm._v("Remove")]
+        )
+      ]
+    ),
+    _vm._v(" "),
+    _c(
+      "div",
+      {
+        directives: [
+          {
+            name: "show",
+            rawName: "v-show",
+            value: _vm.state.edit === true,
+            expression: "state.edit === true"
+          }
+        ],
+        staticClass: "flex items-center w-full"
+      },
+      [
+        _c("input", {
+          directives: [
+            {
+              name: "model",
+              rawName: "v-model",
+              value: _vm.data.text,
+              expression: "data.text"
+            }
+          ],
+          staticClass:
+            "appearance-none border rounded w-full py-2 px-3 mr-2 text-black",
+          attrs: { placeholder: "Update Todo" },
+          domProps: { value: _vm.data.text },
+          on: {
+            keyup: function($event) {
+              if (
+                !("button" in $event) &&
+                _vm._k($event.keyCode, "enter", 13, $event.key, "Enter")
+              ) {
+                return null
+              }
+              return _vm.updateTodo($event)
+            },
+            input: function($event) {
+              if ($event.target.composing) {
+                return
+              }
+              _vm.$set(_vm.data, "text", $event.target.value)
+            }
+          }
+        }),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            staticClass:
+              "flex-no-shrink p-2 ml-2 border-2 rounded text-teal border-teal hover:text-white hover:bg-teal",
+            attrs: { disabled: _vm.data.text.length === 0 },
+            on: { click: _vm.updateTodo }
+          },
+          [_vm._v("Update")]
+        ),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            staticClass:
+              "flex-no-shrink p-2 ml-2 border-2 rounded text-red border-red hover:text-white hover:bg-red",
+            on: { click: _vm.cancelEdit }
+          },
+          [_vm._v("Cancel")]
+        )
+      ]
+    )
+  ])
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-5a338502", module.exports)
+  }
+}
 
 /***/ })
 /******/ ]);
